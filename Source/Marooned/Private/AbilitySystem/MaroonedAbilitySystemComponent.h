@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystemComponent.h"
+#include <AbilitySystemComponent.h>
 #include "MaroonedAbilitySystemComponent.generated.h"
 
 /**

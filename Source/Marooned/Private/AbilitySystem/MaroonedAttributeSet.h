@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
-#include "AbilitySystemComponent.h"
+#include <AbilitySystemComponent.h>
 #include "MaroonedAttributeSet.generated.h"
 
 // Uses macros from AttributeSet.h
