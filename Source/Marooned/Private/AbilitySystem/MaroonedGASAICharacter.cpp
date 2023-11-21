@@ -22,6 +22,8 @@ AMaroonedGASAICharacter::AMaroonedGASAICharacter()
 
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute())
 		.AddUObject(this, &AMaroonedGASAICharacter::HealthChanged);
+
+	AbilitySystemComponent->RegisterGenericGameplayTagEvent().AddUObject(this, &AMaroonedGASAICharacter::TagChanged);
 }
 
 // Called when the game starts or when spawned
@@ -55,5 +57,10 @@ void AMaroonedGASAICharacter::PossessedBy(AController* NewController)
 void AMaroonedGASAICharacter::HealthChanged(const FOnAttributeChangeData& Data)
 {
 	RecieveHealthChanged(Data.NewValue, Data.OldValue);
+}
+
+void AMaroonedGASAICharacter::TagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	RecieveTagChanged(CallbackTag, NewCount);
 }
 

@@ -36,8 +36,13 @@ protected:
 
 	virtual void HealthChanged(const FOnAttributeChangeData& Data);
 
+	virtual void TagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "HealthChanged"))
 	void RecieveHealthChanged(float NewHealth, float OldHealth);
+
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "TagChanged"))
+	void RecieveTagChanged(const FGameplayTag ChangedTag, int32 NewCount);
 
 	UPROPERTY()
 	UMaroonedAbilitySystemComponent* AbilitySystemComponent{ nullptr };
