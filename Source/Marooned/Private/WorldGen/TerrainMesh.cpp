@@ -5,6 +5,7 @@
 #include "ProceduralMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Math/UnrealMathUtility.h"
+#include "KismetProceduralMeshLibrary.h"
 
 
 // Sets default values
@@ -15,9 +16,12 @@ ATerrainMesh::ATerrainMesh()
 
 	Mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 
-	Mesh->SetCollisionProfileName(FName("BlockAllDynamic"), true);
+	// Spent an entire day debugging why collision worked in blueprint but not c++
+	// Turns out calling ResizeMesh in the constructor breaks something
 
-	ResizeMesh(10, 10, 100);
+	//ResizeMesh(10, 10, 100);
+
+	//UE_LOG(LogTemp, Warning, TEXT("Called ATerrainMesh Constructor"));
 }
 
 // Called when the game starts or when spawned
@@ -74,7 +78,7 @@ void ATerrainMesh::UpdateMesh(int32 NewWidthX, int32 NewWidthY, float NewTileSiz
 	float HeightsSeconds = (HeightsTime - StartTime).GetTime();
 	float UpdateMeshSeconds = (UpdateMeshTime - HeightsTime).GetTime();
 
-	UE_LOG(LogTemp, Warning, TEXT("Resized Mesh Total: %f, Height: %f, UpdateMesh: %f "),
+	UE_LOG(LogTemp, Warning, TEXT("Update Mesh Total: %f, Height: %f, UpdateMesh: %f "),
 		TotalSeconds, HeightsSeconds, UpdateMeshSeconds);
 }
 
@@ -94,6 +98,51 @@ void ATerrainMesh::ResizeMesh(int32 NewWidthX, int32 NewWidthY, float NewTileSiz
 	int32 OffsetX = WidthX + 1;
 	int32 OffsetY = WidthY + 1;
 
+
+	if (bUsePMCLibrary)
+	{
+		UKismetProceduralMeshLibrary::CreateGridMeshWelded(WidthX + 1, WidthY + 1, Triangles, Vertices, UVCoords, TileSize);
+
+		FTimePair CreateGridTime = GetAccurateTime();
+
+		// Pass empty vectors for now since these paramaters are optional
+		TArray<FVector> Normals;
+		TArray<FLinearColor> VertexColors;
+		TArray<FProcMeshTangent> Tangents;
+		TArray<FVector2D> EmptyUV;
+
+		Mesh->CreateMeshSection_LinearColor(
+			0,
+			Vertices,
+			Triangles,
+			Normals,
+			UVCoords,
+			EmptyUV,
+			EmptyUV,
+			EmptyUV,
+			VertexColors,
+			Tangents,
+			bEnableCollision,
+			bSRGBConversion
+		);
+
+		FTimePair CreateMeshTime = GetAccurateTime();
+
+		Mesh->SetMaterial(0, Material);
+
+		FTimePair FinishTime = GetAccurateTime();
+
+		float TotalSeconds = (FinishTime - StartTime).GetTime();
+		float CreateGridSeconds = (CreateGridTime - StartTime).GetTime();
+		float CreateMeshSeconds = (CreateMeshTime - CreateGridTime).GetTime();
+
+		UE_LOG(LogTemp, Warning, TEXT("Resized Mesh Total: %f, CreateGrid: %f, CreateMesh: %f "),
+			TotalSeconds, CreateGridSeconds, CreateMeshSeconds);
+
+		return;
+	}
+
+	
 	
 	Vertices.Empty();
 	Vertices.Reserve(VertCount);
@@ -111,6 +160,8 @@ void ATerrainMesh::ResizeMesh(int32 NewWidthX, int32 NewWidthY, float NewTileSiz
 
 	FTimePair VertexTime = GetAccurateTime();
 
+
+	//UKismetProceduralMeshLibrary::CreateGridMeshTriangles(WidthX + 1, WidthY + 1, false, Triangles);
 
 	Triangles.Empty();
 	Triangles.Reserve(WidthX * WidthY * 6);
@@ -152,6 +203,7 @@ void ATerrainMesh::ResizeMesh(int32 NewWidthX, int32 NewWidthY, float NewTileSiz
 	TArray<FVector> Normals;
 	TArray<FLinearColor> VertexColors;
 	TArray<FProcMeshTangent> Tangents;
+	TArray<FVector2D> EmptyUV;
 
 	Mesh->CreateMeshSection_LinearColor(
 		0,
@@ -159,15 +211,26 @@ void ATerrainMesh::ResizeMesh(int32 NewWidthX, int32 NewWidthY, float NewTileSiz
 		Triangles,
 		Normals,
 		UVCoords,
+		EmptyUV,
+		EmptyUV,
+		EmptyUV,
 		VertexColors,
 		Tangents,
-		bEnableCollision
+		bEnableCollision,
+		bSRGBConversion
 	);
 
 
-	ECollisionEnabled::Type enabled = Mesh->GetCollisionEnabled();
+	/*ECollisionEnabled::Type CollisionType = Mesh->GetCollisionEnabled();
 
-	UE_LOG(LogTemp, Warning, TEXT("CollisionEnabled Type: %d"), enabled);
+	FProcMeshSection* section = Mesh->GetProcMeshSection(0);
+
+	FString ActorEnabled = GetActorEnableCollision() ? TEXT("true") : TEXT("false");
+	FString ShouldEnableCollision = bEnableCollision ? TEXT("true") : TEXT("true");
+	FString SectionCollisionEnabled = section->bEnableCollision ? TEXT("true") : TEXT("true");
+
+	UE_LOG(LogTemp, Warning, TEXT("CollisionType: %d, ActorCollisionEnabled: %s, ShouldEnableCollision: %s, SectionCollisionEnabled: %s"),
+		CollisionType, *ActorEnabled, *ShouldEnableCollision, *SectionCollisionEnabled);*/
 
 
 	FTimePair CreateMeshTime = GetAccurateTime();

@@ -41,6 +41,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	bool bEnableCollision;
 
+	UPROPERTY(EditDefaultsOnly)
+	bool bUsePMCLibrary;
+
 protected:
 
 	virtual void ResizeMesh(int32 NewWidthX, int32 NewWidthY, float NewTileSize);
@@ -54,6 +57,8 @@ protected:
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
 	TArray<FVector2D> UVCoords;
+
+	bool bSRGBConversion{ false };
 
 
 public:
