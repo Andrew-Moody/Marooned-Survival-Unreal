@@ -35,6 +35,46 @@ void UMaroonedAttributeSet::OnRep_MaxStamina(const FGameplayAttributeData& OldMa
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UMaroonedAttributeSet, MaxStamina, OldMaxStamina);
 }
 
+void UMaroonedAttributeSet::OnRep_Hunger(const FGameplayAttributeData& OldHunger)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMaroonedAttributeSet, Hunger, OldHunger);
+}
+
+void UMaroonedAttributeSet::OnRep_MaxHunger(const FGameplayAttributeData& OldMaxHunger)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMaroonedAttributeSet, MaxHunger, OldMaxHunger);
+}
+
+void UMaroonedAttributeSet::OnRep_Speed(const FGameplayAttributeData& OldSpeed)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMaroonedAttributeSet, Speed, OldSpeed);
+}
+
+void UMaroonedAttributeSet::OnRep_MeleeStrength(const FGameplayAttributeData& OldMeleeStrength)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMaroonedAttributeSet, MeleeStrength, OldMeleeStrength);
+}
+
+void UMaroonedAttributeSet::OnRep_MagicStrength(const FGameplayAttributeData& OldMagicStrength)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMaroonedAttributeSet, MagicStrength, OldMagicStrength);
+}
+
+void UMaroonedAttributeSet::OnRep_ToolStrength(const FGameplayAttributeData& OldToolStrength)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMaroonedAttributeSet, ToolStrength, OldToolStrength);
+}
+
+void UMaroonedAttributeSet::OnRep_Defense(const FGameplayAttributeData& OldDefense)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMaroonedAttributeSet, Defense, OldDefense);
+}
+
+void UMaroonedAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldArmor)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMaroonedAttributeSet, Armor, OldArmor);
+}
+
 void UMaroonedAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -45,4 +85,13 @@ void UMaroonedAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, Stamina, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, MaxStamina, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, Hunger, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, MaxHunger, COND_None, REPNOTIFY_Always);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, Speed, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, MeleeStrength, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, MagicStrength, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, ToolStrength, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, Armor, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMaroonedAttributeSet, Defense, COND_None, REPNOTIFY_Always);
 }
