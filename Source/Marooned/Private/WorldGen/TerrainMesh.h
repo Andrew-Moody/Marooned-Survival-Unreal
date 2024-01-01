@@ -66,9 +66,9 @@ public:
 	struct FTimePair
 	{
 		int32 Seconds;
-		float PartialSeconds;
+		double PartialSeconds;
 
-		float GetTime()
+		double GetTime()
 		{
 			return Seconds + PartialSeconds;
 		}

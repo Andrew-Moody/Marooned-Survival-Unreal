@@ -3,8 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AttributeSet.h"
+#include <AttributeSet.h>
 #include <AbilitySystemComponent.h>
+#include "MUBaseAttributeSet.h"
 #include "MaroonedAttributeSet.generated.h"
 
 // Uses macros from AttributeSet.h
@@ -18,11 +19,16 @@
  * 
  */
 UCLASS()
-class MAROONED_API UMaroonedAttributeSet : public UAttributeSet
+class MAROONED_API UMaroonedAttributeSet : public UMUBaseAttributeSet
 {
 	GENERATED_BODY()
 	
 public:
+
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
 
 	// Health
 	UPROPERTY(BlueprintReadonly, Category = "Attribute|Health", ReplicatedUsing = OnRep_Health)
@@ -92,9 +98,9 @@ public:
 
 
 	// Meta Attribute to hold a server side temp value and is not replicated
-	UPROPERTY(BlueprintReadonly, Category = "Attribute|Damage")
+	/*UPROPERTY(BlueprintReadonly, Category = "Attribute|Damage")
 	FGameplayAttributeData Damage;
-	ATTRIBUTE_ACCESSORS(UMaroonedAttributeSet, Damage);
+	ATTRIBUTE_ACCESSORS(UMaroonedAttributeSet, Damage);*/
 
 	UFUNCTION()
 	virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
@@ -126,5 +132,5 @@ public:
 	UFUNCTION()
 	virtual void OnRep_Armor(const FGameplayAttributeData& OldArmor);
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

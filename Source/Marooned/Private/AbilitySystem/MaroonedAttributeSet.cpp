@@ -2,7 +2,27 @@
 
 
 #include "MaroonedAttributeSet.h"
+#include <GameplayEffectExtension.h>
 #include "Net/UnrealNetwork.h"
+
+
+void UMaroonedAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+{
+	Super::PreAttributeChange(Attribute, NewValue);
+}
+
+void UMaroonedAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	{
+		float NewHealth = GetHealth() - Data.EvaluatedData.Magnitude;
+		NewHealth = FMath::Clamp(NewHealth, 0.0f, GetMaxHealth());
+
+		SetHealth(NewHealth);
+	}
+}
 
 
 void UMaroonedAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
