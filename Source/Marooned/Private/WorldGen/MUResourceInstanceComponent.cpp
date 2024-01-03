@@ -5,6 +5,9 @@
 #include "DataAssets/ResourceDataAsset.h"
 #include "MUResourceChunk.h"
 #include "MUResourceActor.h"
+#include "Item/ItemTypes.h"
+#include "Item/MUItemSubsystem.h"
+#include "DataAssets/ItemDataAsset.h"
 #include "Timer.h"
 
 void UMUResourceInstanceComponent::Populate(const TArray<FTransform>& Transforms)
@@ -134,12 +137,13 @@ void UMUResourceInstanceComponent::FinishDeathFX(int32 InstanceIndex)
 
 		GetInstanceTransform(InstanceIndex, Transform);
 
-		AMUResourceChunk* Chunk = Cast<AMUResourceChunk>(GetOwner());
+		Transform.AddToTranslation({ 0.0f, 0.0f, 100.0f });
 
-		if (Chunk)
-		{
-			Chunk->RecieveResourceDestroyed(Transform);
-		}
+		FPrimaryAssetId AssetId = DataAsset->DroppedItem->GetPrimaryAssetId();
+
+		FMUItemStack ItemStack{ AssetId, 1 };
+
+		UMUItemSubsystem::Get(GetWorld())->SpawnWorldItem(ItemStack, Transform);
 	}
 
 	// Show where the instance was moved to for debugging

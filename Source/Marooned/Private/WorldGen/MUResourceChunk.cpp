@@ -7,6 +7,10 @@
 #include "AbilitySystem/MUResourceAttributeSet.h"
 #include <GameplayEffectExtension.h>
 
+#include "Item/ItemTypes.h"
+#include "Item/MUItemSubsystem.h"
+#include "Kismet/GameplayStatics.h"
+
 
 AMUResourceChunk::AMUResourceChunk()
 {
@@ -32,8 +36,13 @@ AMUResourceChunk::AMUResourceChunk()
 	//AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
 
+
+	// Unfortunately spawning components dynamically (Outside of constructor) makes replication difficult
+	// HitResults sent via target data from client to server contained null references for the hit component
+
 	// Add a fixed number of ResourceInstanceComponents
 	// This allows the components to be static which simplifies replication and referencing
+
 	ResourceInstanceComponents.Reset(NumResourceComponents);
 
 	for (int32 i = 0; i < NumResourceComponents; ++i)
@@ -105,8 +114,6 @@ void AMUResourceChunk::OnTakeDamage(const FGameplayEffectModCallbackData& Data)
 	int32 InstanceIndex = HitResult->Item;
 
 	// Test that the hit component was a resource instance component
-	// Once multiple components are in use will want to convert the reference into an index or hash
-	// that can be used on Clients to identify the correct component
 	UMUResourceInstanceComponent* HitComponent = Cast<UMUResourceInstanceComponent>(HitResult->GetComponent());
 
 	if (!HitComponent)
@@ -115,6 +122,8 @@ void AMUResourceChunk::OnTakeDamage(const FGameplayEffectModCallbackData& Data)
 		return;
 	}
 
+	// Convert the reference into an index or hash
+	// that can be used on Clients to identify the correct component
 	int32 ComponentIndex = HitComponent->ComponentIndex;
 
 	MulticastTakeDamage(InstanceIndex, ComponentIndex, Damage, *HitResult);
@@ -139,29 +148,3 @@ void AMUResourceChunk::MulticastTakeDamage_Implementation(int32 InstanceIndex, i
 		ResourceInstanceComponents[ComponentIndex]->TakeDamage(InstanceIndex, Damage, HitResult);
 	}
 }
-
-//UMUResourceInstanceComponent* AMUResourceChunk::AddResourceInstanceComponent()
-//{
-//	// Unfortunately spawning components dynamically makes replication difficult
-//	// HitResults sent via target data from client to server contained null references
-//	// for the hit component
-//
-//
-//	UActorComponent* Comp = AddComponentByClass(UMUResourceInstanceComponent::StaticClass(), false, FTransform::Identity, false);
-//
-//	// Needed for the component to show in editor correctly?
-//	AddInstanceComponent(Comp);
-//
-//	UMUResourceInstanceComponent* ResourceInstanceComp = Cast<UMUResourceInstanceComponent>(Comp);
-//
-//	int32 Index = ResourceInstanceComponents.Add(ResourceInstanceComp);
-//
-//	ResourceInstanceComp->ComponentIndex = Index;
-//
-//	ResourceInstanceComp->NumCustomDataFloats = 1;
-//
-//	ResourceInstanceComp->SetCollisionProfileName(TEXT("Pawn"));
-//
-//	return ResourceInstanceComp;
-//}
-

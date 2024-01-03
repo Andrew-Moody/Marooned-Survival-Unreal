@@ -21,4 +21,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* Icon;
+
+	/*FPrimaryAssetId GetPrimaryAssetId()
+	{
+		return FPrimaryAssetId("", GetFName());
+	}*/
 };
