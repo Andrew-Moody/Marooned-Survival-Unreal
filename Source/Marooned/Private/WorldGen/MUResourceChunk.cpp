@@ -102,7 +102,9 @@ void AMUResourceChunk::OnTakeDamage(const FGameplayEffectModCallbackData& Data)
 
 	float Damage = Data.EvaluatedData.Magnitude;
 
-	const FHitResult* HitResult = Data.EffectSpec.GetEffectContext().GetHitResult();
+	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
+
+	const FHitResult* HitResult = EffectContext.GetHitResult();
 
 	if (!HitResult)
 	{
@@ -120,6 +122,15 @@ void AMUResourceChunk::OnTakeDamage(const FGameplayEffectModCallbackData& Data)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Hit Component was not ResourceInstance"));
 		return;
+	}
+
+	FGameplayTag RequiredTag = FGameplayTag::RequestGameplayTag("ToolType.Wood");
+
+	const FGameplayTagContainer& SourceTags = Data.EffectSpec.CapturedSourceTags.GetSpecTags();
+
+	if (RequiredTag.IsValid() && !SourceTags.HasTag(RequiredTag))
+	{
+		Damage = 0.0f;
 	}
 
 	// Convert the reference into an index or hash
