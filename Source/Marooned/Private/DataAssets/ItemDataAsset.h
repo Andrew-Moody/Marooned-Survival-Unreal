@@ -22,8 +22,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* Icon;
 
-	/*FPrimaryAssetId GetPrimaryAssetId()
-	{
-		return FPrimaryAssetId("", GetFName());
-	}*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UGameplayEffect> EquipEffect;
 };

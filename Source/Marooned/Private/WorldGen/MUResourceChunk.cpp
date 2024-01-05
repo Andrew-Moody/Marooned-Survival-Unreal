@@ -3,8 +3,10 @@
 
 #include "WorldGen/MUResourceChunk.h"
 #include "WorldGen/MUResourceInstanceComponent.h"
+#include "DataAssets/ResourceDataAsset.h"
 #include "AbilitySystem/MaroonedAbilitySystemComponent.h"
 #include "AbilitySystem/MUResourceAttributeSet.h"
+#include "AbilitySystem/MaroonedAttributeSet.h"
 #include <GameplayEffectExtension.h>
 
 #include "Item/ItemTypes.h"
@@ -86,6 +88,27 @@ UAbilitySystemComponent* AMUResourceChunk::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
+
+void AMUResourceChunk::MulticastTakeDamage_Implementation(int32 InstanceIndex, int32 ComponentIndex, float Damage, FHitResult HitResult)
+{
+	if (GetNetMode() < ENetMode::NM_Client)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("MulticastTakeDamage called on Server"));
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("MulticastTakeDamage called on Remote Client"));
+	}
+
+	// Find the correct component either by sending a reference (if component references can be sent over network)
+	// or by Index/Hash
+
+	if (ComponentIndex > -1)
+	{
+		ResourceInstanceComponents[ComponentIndex]->TakeDamage(InstanceIndex, Damage, HitResult);
+	}
+}
+
 void AMUResourceChunk::OnTakeDamage(const FGameplayEffectModCallbackData& Data)
 {
 	// Called on Server when damage is set by an effect
@@ -116,46 +139,93 @@ void AMUResourceChunk::OnTakeDamage(const FGameplayEffectModCallbackData& Data)
 	int32 InstanceIndex = HitResult->Item;
 
 	// Test that the hit component was a resource instance component
-	UMUResourceInstanceComponent* HitComponent = Cast<UMUResourceInstanceComponent>(HitResult->GetComponent());
+	UMUResourceInstanceComponent* ResourceComponent = Cast<UMUResourceInstanceComponent>(HitResult->GetComponent());
 
-	if (!HitComponent)
+	if (!ResourceComponent)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Hit Component was not ResourceInstance"));
 		return;
 	}
 
-	FGameplayTag RequiredTag = FGameplayTag::RequestGameplayTag("ToolType.Wood");
-
-	const FGameplayTagContainer& SourceTags = Data.EffectSpec.CapturedSourceTags.GetSpecTags();
-
-	if (RequiredTag.IsValid() && !SourceTags.HasTag(RequiredTag))
+	// Check that the effect and instigator meet all the requirements to damage this resource
+	if (!CheckRequirements(Data.EffectSpec, ResourceComponent->DataAsset))
 	{
 		Damage = 0.0f;
 	}
 
+
 	// Convert the reference into an index or hash
 	// that can be used on Clients to identify the correct component
-	int32 ComponentIndex = HitComponent->ComponentIndex;
+	int32 ComponentIndex = ResourceComponent->ComponentIndex;
 
 	MulticastTakeDamage(InstanceIndex, ComponentIndex, Damage, *HitResult);
 }
 
-void AMUResourceChunk::MulticastTakeDamage_Implementation(int32 InstanceIndex, int32 ComponentIndex, float Damage, FHitResult HitResult)
+bool AMUResourceChunk::CheckRequirements(const FGameplayEffectSpec& EffectSpec, const UResourceDataAsset* ResourceData)
 {
-	if (GetNetMode() < ENetMode::NM_Client)
+	// Check that the effect and instigator meet all the requirements to damage this resource
+
+	const FGameplayTagContainer& SourceTags = EffectSpec.CapturedSourceTags.GetSpecTags();
+	const FGameplayTagContainer& RequiredTags = ResourceData->RequiredTags;
+
+	if (!SourceTags.HasAll(RequiredTags))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("MulticastTakeDamage called on Server"));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("MulticastTakeDamage called on Remote Client"));
+		UE_LOG(LogTemp, Warning, TEXT("Failed to meet required tags"));
+		return false;
 	}
 
-	// Find the correct component either by sending a reference (if component references can be sent over network)
-	// or by Index/Hash
+	UAbilitySystemComponent* InstigatorASC = EffectSpec.GetEffectContext().GetInstigatorAbilitySystemComponent();
 
-	if (ComponentIndex > -1)
+	if (!InstigatorASC)
 	{
-		ResourceInstanceComponents[ComponentIndex]->TakeDamage(InstanceIndex, Damage, HitResult);
+		UE_LOG(LogTemp, Warning, TEXT("Instigator AbilitySystemComponent not found"));
+		return false;
 	}
+
+
+	const UAttributeSet* AttSet = InstigatorASC->GetAttributeSet(UMaroonedAttributeSet::StaticClass());
+
+	if (!AttSet)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetAttributeSet Failed to find UMaroonedAttributeSet"));
+
+		FString InstName = EffectSpec.GetEffectContext().GetInstigator()->GetFName().ToString();
+
+		UE_LOG(LogTemp, Warning, TEXT("Instigator: %s"), *InstName);
+
+		AttSet = InstigatorASC->GetAttributeSet(UAttributeSet::StaticClass());
+
+		if (!AttSet)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("GetAttributeSet Failed to find UAttributeSet"));
+			return false;
+		}
+	}
+
+	const UMaroonedAttributeSet* InstigatorAttSet = Cast<UMaroonedAttributeSet>(AttSet);
+
+	if (!InstigatorAttSet)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to cast to UMaroonedAttributeSet"));
+		return false;
+	}
+
+	/*const UMaroonedAttributeSet* InstigatorAttSet = Cast<UMaroonedAttributeSet>(
+		InstigatorASC->GetAttributeSet(UMaroonedAttributeSet::StaticClass()));
+
+	if (!InstigatorAttSet)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Instigator AttributeSet not found"));
+		return false;
+	}*/
+
+	if (InstigatorAttSet->GetToolStrength() < ResourceData->ToolStrength)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ToolStrength insufficient"));
+		return false;
+	}
+
+	return true;
 }
+
+

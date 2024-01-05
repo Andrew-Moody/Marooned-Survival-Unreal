@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include <GameplayTagContainer.h>
 #include "ResourceDataAsset.generated.h"
 
 class UItemDataAsset;
@@ -22,9 +23,6 @@ public:
 	FText Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float StartingHealth;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMesh* StaticMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -32,4 +30,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UItemDataAsset* DroppedItem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayAbilitySystem")
+	FGameplayTagContainer RequiredTags;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayAbilitySystem")
+	float StartingHealth;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayAbilitySystem")
+	float ToolStrength;
 };

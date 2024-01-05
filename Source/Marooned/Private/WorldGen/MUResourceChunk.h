@@ -13,6 +13,7 @@ class UMUResourceAttributeSet;
 class UResourceDataAsset;
 struct FOnAttributeChangeData;
 struct FGameplayEffectModCallbackData;
+struct FGameplayEffectSpec;
 
 UCLASS()
 class AMUResourceChunk : public APawn, public IAbilitySystemInterface
@@ -34,12 +35,13 @@ public:
 
 protected:
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastTakeDamage(int32 InstanceIndex, int32 ComponentIndex, float Damage, FHitResult HitResult);
+
 	// Called on Server in response to damage applied by an effect
 	void OnTakeDamage(const FGameplayEffectModCallbackData& Data);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastTakeDamage(int32 InstanceIndex, int32 ComponentIndex, float Damage, FHitResult HitResult);
-	
+	bool CheckRequirements(const FGameplayEffectSpec& Data, const UResourceDataAsset* ResourceAsset);
 
 	const int32 NumResourceComponents{ 4 };
 
